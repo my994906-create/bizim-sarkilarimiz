@@ -1,6 +1,6 @@
 import { ArchiveTrack, firestore, toArchiveTrack } from "@/lib/firebase";
 import { collection, onSnapshot, orderBy, query as firestoreQuery } from "firebase/firestore";
-import { BookOpen, Download, Heart, Home as HomeIcon, Library, Loader2, LockKeyhole, Pause, Play, RotateCcw, RotateCw, Search, X } from "lucide-react";
+import { BookOpen, Download, Heart, Home as HomeIcon, Library, Loader2, Pause, Play, RotateCcw, RotateCw, Search, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -147,7 +147,7 @@ export default function Home() {
           <button className={mode === "search" ? "is-active" : ""} onClick={() => setMode("search")}><Search size={18} /> Arama</button>
           <button className={mode === "liked" ? "is-active liked-nav" : "liked-nav"} onClick={() => setMode("liked")}><Heart size={18} /> Beğenilen şarkılar</button>
         </nav>
-        <div className="sidebar-footer"><span className="status-dot" /> Şarkıların uzaktan güncellenir<a href="/yonetim"><LockKeyhole size={13} /> Yönetim</a></div>
+        <div className="sidebar-footer"><span className="status-dot" /> Şarkıların uzaktan güncellenir</div>
       </aside>
 
       <main className="music-content">
