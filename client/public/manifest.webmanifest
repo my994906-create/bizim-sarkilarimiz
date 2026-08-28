@@ -1,6 +1,6 @@
 {
-  "name": "Bizim Şarkılarımız",
-  "short_name": "Şarkılarımız",
+  "name": "Bizim Şarkılarımız Yönetim",
+  "short_name": "Şarkı Yönetim",
   "description": "Uzaktan yönetilen kişisel şarkı arşivi.",
   "start_url": "./",
   "scope": "./",
