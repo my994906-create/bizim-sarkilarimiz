@@ -26,7 +26,7 @@
 
 - [x] Firebase projesi erişimini doğrula ve ortak veri/depolama yapılandırmasını hazırla.
 - [x] Şarkı, kapak görseli, söz, tür ve yayın durumunu içeren ortak katalog modelini oluştur.
-- [ ] Ayrı yönetim uygulamasında ses dosyası, kapak, şarkı adı, söz ve tür yükleme akışını geliştir.
+- [ ] Ayrı yönetim uygulamasında ses dosyası, kapak, şarkı adı, söz ve tür yükleme akışını tek Firebase giriş modeliyle tamamla.
 - [x] Dinleme uygulamasını Firebase katalog ve kapak görsellerini gösterecek şekilde güncelle.
 - [ ] Dinleme ve yönetim uygulamalarını GitHub depolarına aktar ve yayın bağlantılarını doğrula.
 
@@ -34,8 +34,9 @@
 
 - [x] Firestore’u ücretsiz ortak katalog olarak doğrula; ses ve kapak dosyalarını mevcut güvenli depolama ile eşleştir.
 - [x] Katalog kaydına şarkı adı, tür, söz, kapak ve ses bağlantısı alanlarını ekle.
-- [ ] Ayrı yönetim uygulamasında ses, kapak, söz ve tür alanlarının ücretsiz yükleme akışını oluştur.
+- [ ] Ayrı yönetim uygulamasında ses, kapak, söz ve tür alanlarının ücretsiz yükleme akışını canlı olarak doğrula.
 - [x] Dinleme uygulamasında kapak görsellerini, tür bilgisini ve söz görünümünü ekle.
 - [ ] Hibrit uygulamaları test et, GitHub depolarına yükle ve canlı yayın bağlantılarını doğrula.
 - [ ] Yönetim uygulamasını dinleme uygulamasından bağımsız bir yayın ve depo olarak ayır.
-- [ ] Ortak katalogda yayın durumunu yönet ve dinleme uygulamasında yalnızca yayımlanan parçaları göster.
+- [x] Ortak katalogda yayın durumunu yönet ve dinleme uygulamasında yalnızca yayımlanan parçaları göster.
+- [ ] Medya yükleme uçlarını nxkfoc Firebase kimlik belirteciyle doğrula ve Manus OAuth bağımlılığını kaldır.

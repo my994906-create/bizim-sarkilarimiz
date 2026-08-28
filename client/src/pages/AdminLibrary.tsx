@@ -1,10 +1,9 @@
-import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useAuth } from "@/_core/hooks/useAuth";
-import { ArchiveTrack, ensureArchiveEditor, firestore, toArchiveTrack } from "@/lib/firebase";
+import { archiveEditorEmail, ArchiveTrack, ensureArchiveEditor, firebaseAuth, firestore, toArchiveTrack } from "@/lib/firebase";
 import { trpc } from "@/lib/trpc";
+import { onAuthStateChanged } from "firebase/auth";
 import { collection, deleteDoc, doc, onSnapshot, orderBy, query, setDoc } from "firebase/firestore";
 import { FileAudio, ImagePlus, Loader2, ShieldCheck, Trash2, UploadCloud } from "lucide-react";
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
@@ -52,9 +51,10 @@ function titleFromFilename(filename: string) {
 }
 
 export default function AdminLibrary() {
-  const { user, loading } = useAuth({ redirectOnUnauthenticated: true });
   const [tracks, setTracks] = useState<ArchiveTrack[]>([]);
   const [catalogLoading, setCatalogLoading] = useState(true);
+  const [firebaseLoading, setFirebaseLoading] = useState(true);
+  const [editorEmail, setEditorEmail] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [title, setTitle] = useState("");
@@ -85,6 +85,21 @@ export default function AdminLibrary() {
     }, () => setCatalogLoading(false));
     return unsubscribe;
   }, []);
+
+  useEffect(() => onAuthStateChanged(firebaseAuth, currentUser => {
+    setEditorEmail(currentUser?.email === archiveEditorEmail ? currentUser.email : null);
+    setFirebaseLoading(false);
+  }), []);
+
+  async function onFirebaseLogin() {
+    try {
+      const editor = await ensureArchiveEditor();
+      setEditorEmail(editor.email);
+      toast.success("Firebase yönetim oturumu açıldı.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Firebase girişi açılamadı.");
+    }
+  }
 
   function onSelectFile(event: ChangeEvent<HTMLInputElement>) {
     const selected = event.target.files?.[0] ?? null;
@@ -126,9 +141,12 @@ export default function AdminLibrary() {
       return;
     }
     try {
-      await ensureArchiveEditor();
+      const editor = await ensureArchiveEditor();
+      const firebaseIdToken = await editor.getIdToken(true);
       const [base64, durationSeconds, coverBase64] = await Promise.all([toBase64(file), getAudioDuration(file), coverFile ? toBase64(coverFile) : Promise.resolve(null)]);
       const result = await upload.mutateAsync({
+        firebaseIdToken,
+        mediaOrigin: window.location.origin,
         filename: file.name,
         mimeType: file.type || "audio/mpeg",
         base64,
@@ -160,24 +178,23 @@ export default function AdminLibrary() {
     }
   }
 
-  if (loading) {
+  if (firebaseLoading) {
     return <div className="admin-loading"><Loader2 className="animate-spin" /> Yönetim alanı açılıyor…</div>;
   }
 
   return (
-    <DashboardLayout>
-      <section className="admin-page">
+    <section className="admin-page">
         <header className="admin-heading">
           <div>
             <p className="admin-kicker"><ShieldCheck size={14} /> Korumalı yönetim</p>
             <h1>Uzaktan şarkı arşivi</h1>
             <p>Buradan yüklenen parçalar dinleme uygulamasına otomatik olarak eklenir.</p>
           </div>
-          <div className="admin-owner">{user?.role === "admin" ? "Yönetici erişimi" : "Yetki kontrolü"}</div>
+          <div className="admin-owner">{editorEmail ?? "Firebase girişi gerekli"}</div>
         </header>
 
-        {user?.role !== "admin" ? (
-          <div className="admin-access-note"><ShieldCheck size={20} /><div><strong>Bu alan yalnızca proje sahibine açıktır.</strong><p>Doğru hesapla giriş yaptıktan sonra sayfayı yeniden açın.</p></div></div>
+        {!editorEmail ? (
+          <div className="admin-access-note"><ShieldCheck size={20} /><div><strong>Bu alan yalnızca proje sahibine açıktır.</strong><p>Devam etmek için Firebase üzerinden `nxkfoc@gmail.com` hesabıyla giriş yapın.</p><Button type="button" className="admin-login" onClick={() => void onFirebaseLogin()}>Google ile güvenli giriş</Button></div></div>
         ) : (
           <>
             <form className="upload-card" onSubmit={onSubmit}>
@@ -201,7 +218,6 @@ export default function AdminLibrary() {
             </section>
           </>
         )}
-      </section>
-    </DashboardLayout>
+    </section>
   );
 }

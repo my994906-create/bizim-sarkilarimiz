@@ -3,8 +3,8 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { adminProcedure, publicProcedure, router } from "./_core/trpc";
-import { createTrack, listTracks, removeTrack } from "./db";
+import { publicProcedure, router } from "./_core/trpc";
+import { assertFirebaseArchiveOwner } from "./firebaseAuth";
 import { assertAudioUpload, assertCoverUpload, cleanTrackTitle, safeAudioFilename, safeCoverFilename } from "./musicValidation";
 import { storagePut } from "./storage";
 
@@ -15,8 +15,8 @@ const coverSchema = z.object({
   base64: z.string().min(1),
 });
 
-function absoluteUrl(relativeUrl: string, protocol: string, host: string | undefined) {
-  return new URL(relativeUrl, `${protocol}://${host || "localhost"}`).toString();
+function absoluteUrl(relativeUrl: string, origin: string) {
+  return new URL(relativeUrl, origin).toString();
 }
 
 export const appRouter = router({
@@ -33,9 +33,10 @@ export const appRouter = router({
     }),
   }),
   music: router({
-    list: publicProcedure.query(async () => listTracks()),
-    upload: adminProcedure
+    upload: publicProcedure
       .input(z.object({
+        firebaseIdToken: z.string().min(1),
+        mediaOrigin: z.string().url().max(512),
         filename: z.string().min(1).max(255),
         mimeType: z.string().min(1).max(100),
         base64: z.string().min(1),
@@ -48,7 +49,8 @@ export const appRouter = router({
         published: z.boolean().default(true),
         durationSeconds: z.number().int().min(0).max(86_400).default(0),
       }))
-      .mutation(async ({ ctx, input }) => {
+      .mutation(async ({ input }) => {
+        await assertFirebaseArchiveOwner(input.firebaseIdToken);
         const bytes = Buffer.from(input.base64, "base64");
         try {
           assertAudioUpload({ mimeType: input.mimeType, byteLength: bytes.byteLength });
@@ -57,7 +59,8 @@ export const appRouter = router({
         }
 
         const fileName = safeAudioFilename(input.filename);
-        const { key, url } = await storagePut(`music/${ctx.user.id}/${Date.now()}-${fileName}`, bytes, input.mimeType);
+        const namespace = "music-archive";
+        const { key, url } = await storagePut(`music/${namespace}/${Date.now()}-${fileName}`, bytes, input.mimeType);
         let coverStorageKey: string | null = null;
         let coverUrl: string | null = null;
 
@@ -69,42 +72,21 @@ export const appRouter = router({
             throw new TRPCError({ code: "BAD_REQUEST", message: error instanceof Error ? error.message : "Kapak görseli geçersiz." });
           }
           const coverName = safeCoverFilename(input.cover.filename);
-          const storedCover = await storagePut(`covers/${ctx.user.id}/${Date.now()}-${coverName}`, coverBytes, input.cover.mimeType);
+          const storedCover = await storagePut(`covers/${namespace}/${Date.now()}-${coverName}`, coverBytes, input.cover.mimeType);
           coverStorageKey = storedCover.key;
-          coverUrl = absoluteUrl(storedCover.url, ctx.req.protocol, ctx.req.get("host"));
+          coverUrl = absoluteUrl(storedCover.url, input.mediaOrigin);
         }
 
-        const publicAudioUrl = absoluteUrl(url, ctx.req.protocol, ctx.req.get("host"));
+        const publicAudioUrl = absoluteUrl(url, input.mediaOrigin);
         const title = cleanTrackTitle(input.title || input.filename);
         const artist = cleanTrackTitle(input.artist || "Bizim Şarkılarımız");
         const genre = (input.genre || "").trim().slice(0, 120);
         const lyrics = (input.lyrics || "").trim().slice(0, 20_000);
 
-        await createTrack({
-          title,
-          artist,
-          category: input.category,
-          storageKey: key,
-          audioUrl: publicAudioUrl,
-          coverStorageKey,
-          coverUrl,
-          genre,
-          lyrics,
-          published: input.published,
-          durationSeconds: input.durationSeconds,
-          fileSizeBytes: bytes.byteLength,
-          uploadedByUserId: ctx.user.id,
-        });
         return {
           success: true,
-          track: { title, artist, category: input.category, genre, lyrics, published: input.published, audioUrl: publicAudioUrl, coverUrl, durationSeconds: input.durationSeconds },
+          track: { title, artist, category: input.category, genre, lyrics, published: input.published, audioUrl: publicAudioUrl, audioStorageKey: key, coverUrl, coverStorageKey, durationSeconds: input.durationSeconds },
         } as const;
-      }),
-    remove: adminProcedure
-      .input(z.object({ id: z.number().int().positive() }))
-      .mutation(async ({ input }) => {
-        await removeTrack(input.id);
-        return { success: true } as const;
       }),
   }),
 });
