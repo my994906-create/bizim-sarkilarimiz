@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { archiveEditorEmail, ArchiveTrack, ensureArchiveEditor, firebaseAuth, firestore, toArchiveTrack } from "@/lib/firebase";
+import { archiveEditorEmail, ArchiveTrack, ensureArchiveEditor, firebaseAuth, firestore, startArchiveEditorSignIn, toArchiveTrack } from "@/lib/firebase";
 import { trpc } from "@/lib/trpc";
 import { onAuthStateChanged } from "firebase/auth";
 import { collection, deleteDoc, doc, onSnapshot, orderBy, query, setDoc } from "firebase/firestore";
@@ -93,7 +93,7 @@ export default function AdminLibrary() {
 
   async function onFirebaseLogin() {
     try {
-      const editor = await ensureArchiveEditor();
+      const editor = await startArchiveEditorSignIn();
       setEditorEmail(editor.email);
       toast.success("Firebase yönetim oturumu açıldı.");
     } catch (error) {

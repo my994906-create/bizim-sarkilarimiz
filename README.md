@@ -1,48 +1,43 @@
 # Bizim Şarkılarımız
 
-**Bizim Şarkılarımız**, yalnızca seçtiğiniz ses dosyalarını çalan; telefon ana ekranına kurulabilen, kişisel bir PWA müzik arşividir. Tasarım dili, koyu mürekkep zemin, plak mercanı etkileşim rengi ve analog plak kapaklarından esinlenen **Gece Vinyli** yaklaşımıdır.
-
-## Özellikler
+**Bizim Şarkılarımız**, yalnızca arşiv sahibinin eklediği parçaları gösteren; telefon ana ekranına kurulabilen, kişisel bir dinleme PWA’sıdır. Dinleme yüzeyi Spotify’dan esinlenen, ferah ve uygulama odaklı bir arayüz sunar. Merkezi katalog Firestore’dan canlı okunur; bu nedenle yeni yayımlanan parçalar dinleme sayfasında yenileme gerektirmeden görünür.
 
 | Alan | Davranış |
 | --- | --- |
-| Şarkı ekleme | `Parça ekle` düğmesiyle cihazdan MP3, M4A, WAV, OGG gibi desteklenen ses dosyaları seçilir. Birden fazla dosya aynı anda eklenebilir. |
-| Saklama | Ses dosyaları yalnızca ilgili cihazın tarayıcısında saklanır; herhangi bir üçüncü taraf müzik kataloğuna bağlanılmaz. |
-| Oynatma | Parça seçme, oynat/duraklat, 15 saniye ileri–geri alma, ses ayarı, parça süresi ve otomatik sıradaki parça geçişi vardır. |
-| Yönetim | Her parça arşivden silinebilir. Favori, yorum, sosyal akış veya çalma listesi işlevi yoktur. |
-| PWA | Uygulama ana ekrana eklenebilir ve tam ekran uygulama görünümünde açılır. |
+| Dinleme | Parça oynatma, 15 saniye ileri/geri sarma, arama, kategori filtreleri ve cihazda saklanan beğeniler bulunur. |
+| Parça detayları | Kapak görseli, tür etiketi ve sözler için erişilebilir bir ayrıntı penceresi sağlanır. |
+| Yayın kontrolü | Yönetimde yayımlanmamış olarak bırakılan parçalar ortak katalogda korunur ancak dinleme PWA’sında gösterilmez. |
+| Yönetim | Kullanıcıya açık yükleme alanı yoktur. Ayrı yönetim kaynağı yalnızca `nxkfoc@gmail.com` Firebase hesabıyla açılır. |
+| PWA | Uygulama ana ekrana eklenebilir; mobil alt gezinme ve yatay taşmayı önleyen yerleşim kullanır. |
 
-> **Not:** Bu sürüm statik GitHub Pages mimarisindedir. Bu nedenle tarayıcıdan eklenen şarkılar yalnızca ekleyen kişinin cihazında görünür. Aynı arşivi başka bir cihazla otomatik paylaşmak için dosya depolama ve kullanıcı erişimi olan bir sunucu katmanı gerekir.
+## Ücretsiz hibrit mimari
+
+> Bu uygulama **Firebase Storage kullanmaz** ve **Blaze planı ya da ücretli Firebase özelliği gerektirmez**. Firestore yalnızca ortak katalog verisini tutar; ses ve kapak dosyaları güvenli uygulama depolamasına yüklenir.
+
+| Katman | Kullanım |
+| --- | --- |
+| Firestore | Başlık, sanatçı, kategori, tür, söz, yayın durumu ve medya bağlantıları. |
+| Firebase Authentication | Yönetim arayüzünde yalnızca `nxkfoc@gmail.com` hesabı için ücretsiz Google girişi. |
+| Güvenli medya depolaması | Ses dosyaları en fazla 25 MB, kapak görselleri en fazla 5 MB. |
+| GitHub Pages | Kullanıcıya açık dinleme PWA’sı: [canlı bağlantı](https://my994906-create.github.io/bizim-sarkilarimiz/). |
+
+## Ayrı yönetim uygulaması
+
+Yönetim uygulamasının kaynak kodu ayrı depoda tutulur: [bizim-sarkilarimiz-yonetim](https://github.com/my994906-create/bizim-sarkilarimiz-yonetim). Bu kaynak, ses dosyası, kapak, şarkı adı, sanatçı, tür, söz ve yayın durumu girişlerini ortak Firestore kataloğuna güvenli biçimde gönderir.
 
 ## Yerelde çalıştırma
 
-Önce bağımlılıkları yükleyin, sonra geliştirme sunucusunu başlatın.
-
 ```bash
 pnpm install
-pnpm dev
-```
-
-Tür denetimi ve üretim derlemesi için aşağıdaki komutlar kullanılabilir.
-
-```bash
-pnpm check
+pnpm test
+pnpm exec tsc --noEmit
 pnpm build
 ```
-
-## GitHub Pages’te yayınlama
-
-Proje `main` dalına her gönderildiğinde `.github/workflows/deploy-pages.yml` iş akışı otomatik çalışır. GitHub’da depo ayarlarından **Settings → Pages** bölümünü açın ve dağıtım kaynağı olarak **GitHub Actions** seçeneğinin etkin olduğundan emin olun. İlk başarılı çalışmanın sonunda bağlantı, işlemin özet ekranında ve **Settings → Pages** bölümünde görünür.
 
 ## Ana ekrana ekleme
 
 | Cihaz | Yol |
 | --- | --- |
-| Android / Chrome | Uygulamadaki `Uygulamayı yükle` düğmesine dokunun. Düğme görünmezse tarayıcı menüsünden **Ana ekrana ekle** seçeneğini kullanın. |
-| iPhone / Safari | Paylaş simgesine, ardından **Ana Ekrana Ekle** seçeneğine dokunun. |
-| Masaüstü Chrome/Edge | Adres çubuğundaki yükleme simgesini ya da uygulamadaki `Uygulamayı yükle` düğmesini kullanın. |
-
-## Teknik yapı
-
-Uygulama React 19, TypeScript, Vite ve Tailwind CSS ile hazırlanmıştır. Ses dosyaları tarayıcının IndexedDB deposunda saklanır; PWA kabuğu `manifest.webmanifest` ve `sw.js` ile sunulur. GitHub Pages dağıtımı, üretim klasörü olan `dist/public` dizininden yapılır.
-
+| Android / Chrome | Dinleme uygulamasındaki **Uygulamayı yükle** düğmesini kullanın. Görünmezse tarayıcı menüsünden **Ana ekrana ekle** seçeneğini seçin. |
+| iPhone / Safari | Paylaş simgesinden **Ana Ekrana Ekle** seçeneğini kullanın. |
+| Masaüstü Chrome/Edge | Adres çubuğundaki yükleme simgesini veya uygulamadaki **Uygulamayı yükle** düğmesini kullanın. |

@@ -48,6 +48,13 @@ export async function ensureArchiveEditor() {
   if (firebaseAuth.currentUser?.email === archiveEditorEmail) return firebaseAuth.currentUser;
   if (firebaseAuth.currentUser) await signOut(firebaseAuth);
 
+  throw new Error("Devam etmek için nxkfoc@gmail.com hesabıyla Google girişini tamamlayın.");
+}
+
+export async function startArchiveEditorSignIn() {
+  if (firebaseAuth.currentUser?.email === archiveEditorEmail) return firebaseAuth.currentUser;
+  if (firebaseAuth.currentUser) await signOut(firebaseAuth);
+
   const provider = new GoogleAuthProvider();
   provider.setCustomParameters({ prompt: "select_account" });
   const result = await signInWithPopup(firebaseAuth, provider);
