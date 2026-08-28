@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1787871964422,
+      "tag": "0000_mute_maverick",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1787875493320,
+      "tag": "0001_majestic_eternals",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1787876114219,
+      "tag": "0002_sour_ben_parker",
+      "breakpoints": true
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "Bizim Şarkılarımız",
+  "short_name": "Şarkılarımız",
+  "description": "Uzaktan yönetilen kişisel şarkı arşivi.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "background_color": "#f5f6f1",
+  "theme_color": "#f5f6f1",
+  "icons": [
+    {
+      "src": "https://files.manuscdn.com/user_upload_by_module/session_file/310419663029766169/LlEQwWWuJOXeTjhP.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

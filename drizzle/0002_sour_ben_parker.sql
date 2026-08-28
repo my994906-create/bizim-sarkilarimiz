@@ -1,0 +1,1 @@
+ALTER TABLE `tracks` ADD `published` boolean DEFAULT true NOT NULL;
